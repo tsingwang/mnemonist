@@ -1,0 +1,25 @@
+Button {
+    width: 1fr;
+    margin: 2;
+}
+.question {
+    height: 1fr;
+}
+.answer {
+    height: 1fr;
+}
+.stats {
+    height: 2;
+    text-align: center;
+}
+.action {
+    height: 6;
+}
+
+DeckNewScreen {
+    layout: grid;
+    grid-size: 2;
+    grid-gutter: 2;
+    align: center middle;
+    text-style: bold;
+}
