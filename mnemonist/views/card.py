@@ -1,8 +1,11 @@
+import math
+
 import click
 from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Markdown, Button, Collapsible
+from textual_image.widget import Image
 
 from ..components import CardList
 from ..db import api as db_api
@@ -28,7 +31,7 @@ class CardListScreen(Screen):
         self.query_one(CardList).focus()
 
     def on_screen_resume(self) -> None:
-        self.query_one(CardList).render_table()
+        self.query_one(CardList).refresh_table()
 
 
 class CardScreen(Screen):
@@ -45,10 +48,23 @@ class CardScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Collapsible(Markdown(self.card["question"], id="question"),
-                          collapsed=False, title="Question", classes="question")
-        yield Collapsible(Markdown(self.card["answer"], id="answer"),
-                          collapsed=False, title="Answer", classes="answer")
+        with Collapsible(collapsed=False, title="Question", classes="question"):
+            yield Markdown(self.card["question"], id="question")
+            with Horizontal():
+                for s in self.card["question"].split("file://")[1:]:
+                    url = s.split(')')[0]
+                    img = Image(url)
+                    img.styles.width = math.ceil(img._image_width/20)
+                    yield img
+
+        with Collapsible(collapsed=False, title="Answer", classes="answer"):
+            yield Markdown(self.card["answer"], id="answer")
+            with Horizontal():
+                for s in self.card["answer"].split("file://")[1:]:
+                    url = s.split(')')[0]
+                    img = Image(url)
+                    img.styles.width = math.ceil(img._image_width/20)
+                    yield img
         yield Horizontal(Button("Yes", id="yes", variant="success"),
                          Button("No", id="no", variant="error"),
                          classes="action")
@@ -72,6 +88,8 @@ class CardScreen(Screen):
         if content is not None:
             question = content.split('---\n')[0]
             answer = '---\n'.join(content.split('---\n')[1:])
+            self.card["question"] = question
+            self.card["answer"] = answer
             self.query_one("#question").update(question)
             self.query_one("#answer").update(answer)
             db_api.card_update(self.card["id"], question, answer)

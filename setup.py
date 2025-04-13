@@ -27,7 +27,7 @@ setup(
         "SQLAlchemy",
         "rich",
         "textual",
-        #"textual-image",
+        "textual-image",
     ],
     classifiers=[
         "License :: OSI Approved :: MIT License",

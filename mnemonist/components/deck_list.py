@@ -20,7 +20,6 @@ class DeckList(DataTable):
     ]
 
     def render_table(self) -> None:
-        self.clear()
         for d in db_api.deck_list():
             row = [
                 '{}'.format(d['id']),
@@ -43,7 +42,7 @@ class DeckList(DataTable):
             return
         row = self.get_row_at(self.cursor_row)
         db_api.deck_delete(int(row[0]))
-        self.render_table()
+        self.refresh_table()
 
     async def action_review(self) -> None:
         if not self.is_valid_row_index(self.cursor_row):

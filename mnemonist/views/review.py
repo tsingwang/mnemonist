@@ -1,10 +1,13 @@
+import math
 from datetime import datetime
 
 import click
 from textual import work
 from textual.app import ComposeResult
+from textual.containers import Vertical
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Markdown
+from textual_image.widget import Image
 
 from ..components import DeckList
 from ..db import api as db_api
@@ -18,7 +21,7 @@ class ReviewScreen(Screen):
         ("escape", "app.pop_screen", "Pop screen"),
         ("l", "list", "List Card"),
         ("n", "new", "New Card"),
-        ("enter", "show_answer", "Show Answer"),
+        ("space", "show_answer", "Show Answer"),
     ]
 
     def __init__(self, deck_id: int) -> None:
@@ -33,6 +36,7 @@ class ReviewScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Header()
         yield Markdown(id="question", classes="question")
+        yield Vertical(id="images")
         yield Static(id="stats", classes="stats")
         yield Footer()
 
@@ -47,6 +51,14 @@ class ReviewScreen(Screen):
             return self.show_today_summary()
 
         self.query_one("#question").update(self.card["question"])
+        self.query_one("#images").remove_children()
+        imgs = []
+        for s in self.card["question"].split("file://")[1:]:
+            url = s.split(')')[0]
+            img = Image(url)
+            img.styles.width = math.ceil(img._image_width/20)
+            imgs.append(img)
+        self.query_one("#images").mount(*imgs)
 
         stats = "LAST SEEN: {} days ago  MASTER: {}  FORGET: {}".format(
                 (datetime.now() - self.card["updated_at"]).days,
@@ -88,6 +100,7 @@ class ReviewScreen(Screen):
             self.total_master += 1
         elif action == const.CARD_FORGET:
             db_api.card_forget(self.card["id"])
+            self.total_forget += 1
         elif action == const.CARD_DELETE:
             db_api.card_delete(self.card["id"])
         await self.next_card()

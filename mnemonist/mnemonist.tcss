@@ -1,18 +1,39 @@
+$text-color: #839496;
+
+Image {
+    width: 50;
+    height: auto;
+}
+DataTable {
+    color: $text-color;
+}
+Static {
+    color: $text-color;
+}
+Markdown {
+    color: $text-color;
+}
 Button {
     width: 1fr;
     margin: 2;
 }
 .question {
-    height: 1fr;
+    color: $text-color;
+    /*height: 1fr;
+    overflow-y: auto;*/
 }
 .answer {
-    height: 1fr;
+    color: $text-color;
+    /*height: 1fr;
+    overflow-y: auto;*/
 }
 .stats {
+    dock: bottom;
     height: 2;
     text-align: center;
 }
 .action {
+    dock: bottom;
     height: 6;
 }
 

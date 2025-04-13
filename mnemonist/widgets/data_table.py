@@ -28,7 +28,7 @@ class DataTable(_DataTable):
 
     def on_mount(self) -> None:
         self.init_column()
-        self.render_table()
+        self.refresh_table()
 
     def init_column(self) -> None:
         """Init column only once when mount."""
@@ -38,3 +38,9 @@ class DataTable(_DataTable):
 
     def render_table(self) -> None:
         raise NotImplementedError("Need provide a render_table() method.")
+
+    def refresh_table(self) -> None:
+        cursor_row = self.cursor_row
+        self.clear()
+        self.render_table()
+        self.move_cursor(row=cursor_row)

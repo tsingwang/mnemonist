@@ -17,7 +17,7 @@ class DeckListScreen(Screen):
         self.query_one(DeckList).focus()
 
     def on_screen_resume(self) -> None:
-        self.query_one(DeckList).render_table()
+        self.query_one(DeckList).refresh_table()
 
 
 class DeckNewScreen(ModalScreen):

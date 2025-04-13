@@ -29,7 +29,6 @@ class CardList(DataTable):
         self.deck_id = deck_id
 
     def render_table(self) -> None:
-        self.clear()
         for d in db_api.card_list(self.deck_id):
             row = [
                 '{}'.format(d['id']),
@@ -52,7 +51,7 @@ class CardList(DataTable):
             question = content.split('---\n')[0]
             answer = '---\n'.join(content.split('---\n')[1:])
             db_api.card_new(self.deck_id, question, answer)
-        self.render_table()
+        self.refresh_table()
 
     async def action_edit(self) -> None:
         if not self.is_valid_row_index(self.cursor_row):
@@ -66,14 +65,14 @@ class CardList(DataTable):
             question = content.split('---\n')[0]
             answer = '---\n'.join(content.split('---\n')[1:])
             db_api.card_update(int(row[0]), question, answer)
-        self.render_table()
+        self.refresh_table()
 
     async def action_delete(self) -> None:
         if not self.is_valid_row_index(self.cursor_row):
             return
         row = self.get_row_at(self.cursor_row)
         db_api.card_delete(int(row[0]))
-        self.render_table()
+        self.refresh_table()
 
     async def action_show(self) -> None:
         if not self.is_valid_row_index(self.cursor_row):
