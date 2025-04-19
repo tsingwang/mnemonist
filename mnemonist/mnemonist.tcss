@@ -1,7 +1,6 @@
 $text-color: #839496;
 
 Image {
-    width: 50;
     height: auto;
 }
 DataTable {
@@ -19,13 +18,13 @@ Button {
 }
 .question {
     color: $text-color;
-    /*height: 1fr;
-    overflow-y: auto;*/
+    height: 2fr;
+    overflow-y: auto;
 }
 .answer {
     color: $text-color;
-    /*height: 1fr;
-    overflow-y: auto;*/
+    height: 1fr;
+    overflow-y: auto;
 }
 .stats {
     dock: bottom;

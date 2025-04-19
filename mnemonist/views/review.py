@@ -4,14 +4,14 @@ from datetime import datetime
 import click
 from textual import work
 from textual.app import ComposeResult
-from textual.containers import Vertical
+from textual.containers import Container, HorizontalScroll
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Static, Markdown
 from textual_image.widget import Image
 
 from ..components import DeckList
+from ..const import CARD_MASTER, CARD_FORGET, CARD_DELETE, SEPARATOR
 from ..db import api as db_api
-from . import const
 from .card import CardListScreen, CardScreen
 
 
@@ -35,8 +35,9 @@ class ReviewScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Markdown(id="question", classes="question")
-        yield Vertical(id="images")
+        with Container(classes="question"):
+            yield Markdown(id="question")
+            yield HorizontalScroll(id="images")
         yield Static(id="stats", classes="stats")
         yield Footer()
 
@@ -56,7 +57,7 @@ class ReviewScreen(Screen):
         for s in self.card["question"].split("file://")[1:]:
             url = s.split(')')[0]
             img = Image(url)
-            img.styles.width = math.ceil(img._image_width/20)
+            img.styles.width = math.ceil(img._image_width/25)
             imgs.append(img)
         self.query_one("#images").mount(*imgs)
 
@@ -80,13 +81,13 @@ class ReviewScreen(Screen):
         self.app.push_screen(CardListScreen(self.deck_id))
 
     async def action_new(self) -> None:
-        content = '\n\n---\n\n'
+        content = '\n\n{}\n'.format(SEPARATOR)
         self.app._driver.stop_application_mode()
         content = click.edit(content)
         self.app._driver.start_application_mode()
         if content is not None:
-            question = content.split('---\n')[0]
-            answer = '---\n'.join(content.split('---\n')[1:])
+            question = content.split(SEPARATOR)[0]
+            answer = SEPARATOR.join(content.split(SEPARATOR)[1:])
             db_api.card_new(self.deck_id, question, answer)
 
     @work
@@ -95,12 +96,12 @@ class ReviewScreen(Screen):
             self.app.pop_screen()
             return
         action = await self.app.push_screen_wait(CardScreen(self.card))
-        if action == const.CARD_MASTER:
+        if action == CARD_MASTER:
             db_api.card_master(self.card["id"])
             self.total_master += 1
-        elif action == const.CARD_FORGET:
+        elif action == CARD_FORGET:
             db_api.card_forget(self.card["id"])
             self.total_forget += 1
-        elif action == const.CARD_DELETE:
+        elif action == CARD_DELETE:
             db_api.card_delete(self.card["id"])
         await self.next_card()

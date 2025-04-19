@@ -1,5 +1,6 @@
 import click
 
+from ..const import SEPARATOR
 from ..db import api as db_api
 from ..widgets import DataTable
 
@@ -43,13 +44,13 @@ class CardList(DataTable):
             self.add_row(*row, key=d['id'])
 
     async def action_new(self) -> None:
-        content = '\n\n---\n\n'
+        content = '\n\n{}\n'.format(SEPARATOR)
         self.app._driver.stop_application_mode()
         content = click.edit(content)
         self.app._driver.start_application_mode()
         if content is not None:
-            question = content.split('---\n')[0]
-            answer = '---\n'.join(content.split('---\n')[1:])
+            question = content.split(SEPARATOR)[0]
+            answer = SEPARATOR.join(content.split(SEPARATOR)[1:])
             db_api.card_new(self.deck_id, question, answer)
         self.refresh_table()
 
@@ -57,13 +58,13 @@ class CardList(DataTable):
         if not self.is_valid_row_index(self.cursor_row):
             return
         row = self.get_row_at(self.cursor_row)
-        content = '---\n'.join([row[1], row[2]])
+        content = SEPARATOR.join([row[1], row[2]])
         self.app._driver.stop_application_mode()
         content = click.edit(content)
         self.app._driver.start_application_mode()
         if content is not None:
-            question = content.split('---\n')[0]
-            answer = '---\n'.join(content.split('---\n')[1:])
+            question = content.split(SEPARATOR)[0]
+            answer = SEPARATOR.join(content.split(SEPARATOR)[1:])
             db_api.card_update(int(row[0]), question, answer)
         self.refresh_table()
 
