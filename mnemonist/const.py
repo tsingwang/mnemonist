@@ -1,5 +1,4 @@
 CARD_MASTER = 0
 CARD_FORGET = 1
-CARD_DELETE = 2
 
 SEPARATOR = '%%%%%%\n'

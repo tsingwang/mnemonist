@@ -4,15 +4,36 @@ from datetime import datetime
 import click
 from textual import work
 from textual.app import ComposeResult
-from textual.containers import Container, HorizontalScroll
-from textual.screen import Screen
-from textual.widgets import Header, Footer, Static, Markdown
+from textual.containers import Container, Horizontal, HorizontalScroll, VerticalScroll
+from textual.screen import ModalScreen, Screen
+from textual.widgets import Header, Button, Footer, Static, Markdown
 from textual_image.widget import Image
 
-from ..components import DeckList
-from ..const import CARD_MASTER, CARD_FORGET, CARD_DELETE, SEPARATOR
+from ..const import SEPARATOR
 from ..db import api as db_api
-from .card import CardListScreen, CardScreen
+from .card import CardListScreen
+
+
+class AnswerScreen(ModalScreen):
+
+    BINDINGS = [
+        ("escape", "app.pop_screen", "Pop screen"),
+    ]
+
+    def __init__(self, card: dict) -> None:
+        super().__init__()
+        self.card = card
+
+    def compose(self) -> ComposeResult:
+        yield Header()
+        yield Markdown(self.card["answer"])
+        with VerticalScroll():
+            for s in self.card["answer"].split("file://")[1:]:
+                url = s.split(')')[0]
+                img = Image(url)
+                img.styles.width = math.ceil(img._image_width/25)
+                yield img
+        yield Footer()
 
 
 class ReviewScreen(Screen):
@@ -21,6 +42,8 @@ class ReviewScreen(Screen):
         ("escape", "app.pop_screen", "Pop screen"),
         ("l", "list", "List Card"),
         ("n", "new", "New Card"),
+        ("e", "edit", "Edit Card"),
+        ("D", "delete", "Delete Card"),
         ("space", "show_answer", "Show Answer"),
     ]
 
@@ -39,9 +62,23 @@ class ReviewScreen(Screen):
             yield Markdown(id="question")
             yield HorizontalScroll(id="images")
         yield Static(id="stats", classes="stats")
+        yield Horizontal(Button("Yes", id="yes", variant="success"),
+                         Button("No", id="no", variant="error"),
+                         classes="action")
         yield Footer()
 
     async def on_mount(self) -> None:
+        self.query_one("#yes").focus()
+        await self.next_card()
+
+    async def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "yes":
+            db_api.card_master(self.card["id"])
+            self.total_master += 1
+        elif event.button.id == "no":
+            self.query_one("#yes").focus()
+            db_api.card_forget(self.card["id"])
+            self.total_forget += 1
         await self.next_card()
 
     async def next_card(self) -> None:
@@ -90,18 +127,26 @@ class ReviewScreen(Screen):
             answer = SEPARATOR.join(content.split(SEPARATOR)[1:])
             db_api.card_new(self.deck_id, question, answer)
 
+    async def action_edit(self) -> None:
+        content = SEPARATOR.join([self.card["question"], self.card["answer"]])
+        self.app._driver.stop_application_mode()
+        content = click.edit(content)
+        self.app._driver.start_application_mode()
+        if content is not None:
+            question = content.split(SEPARATOR)[0]
+            answer = SEPARATOR.join(content.split(SEPARATOR)[1:])
+            self.card["question"] = question
+            self.card["answer"] = answer
+            self.query_one("#question").update(question)
+            db_api.card_update(self.card["id"], question, answer)
+
+    async def action_delete(self) -> None:
+        db_api.card_delete(self.card["id"])
+        await self.next_card()
+
     @work
     async def action_show_answer(self) -> None:
         if self.card is None:
             self.app.pop_screen()
             return
-        action = await self.app.push_screen_wait(CardScreen(self.card))
-        if action == CARD_MASTER:
-            db_api.card_master(self.card["id"])
-            self.total_master += 1
-        elif action == CARD_FORGET:
-            db_api.card_forget(self.card["id"])
-            self.total_forget += 1
-        elif action == CARD_DELETE:
-            db_api.card_delete(self.card["id"])
-        await self.next_card()
+        await self.app.push_screen_wait(AnswerScreen(self.card))

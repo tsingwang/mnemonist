@@ -27,7 +27,6 @@ Button {
     overflow-y: auto;
 }
 .stats {
-    dock: bottom;
     height: 2;
     text-align: center;
 }
@@ -42,4 +41,8 @@ DeckNewScreen {
     grid-gutter: 2;
     align: center middle;
     text-style: bold;
+}
+
+AnswerScreen {
+    align: center middle;
 }

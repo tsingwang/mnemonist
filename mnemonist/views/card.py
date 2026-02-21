@@ -10,7 +10,7 @@ from textual.widgets import Header, Footer, Markdown, Button, Collapsible
 from textual_image.widget import Image
 
 from ..components import CardList
-from ..const import CARD_MASTER, CARD_FORGET, CARD_DELETE, SEPARATOR
+from ..const import CARD_MASTER, CARD_FORGET, SEPARATOR
 from ..db import api as db_api
 
 
@@ -41,7 +41,6 @@ class CardScreen(Screen):
     BINDINGS = [
         ("escape", "app.pop_screen", "Pop screen"),
         ("e", "edit", "Edit Card"),
-        ("D", "delete", "Delete Card"),
     ]
 
     is_horizontal = reactive(0, recompose=True)
@@ -86,9 +85,11 @@ class CardScreen(Screen):
 
     async def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "yes":
+            db_api.card_master(self.card["id"])
             self.dismiss(CARD_MASTER)
         elif event.button.id == "no":
             self.query_one("#yes").focus()
+            db_api.card_forget(self.card["id"])
             self.dismiss(CARD_FORGET)
 
     async def action_edit(self) -> None:
@@ -104,6 +105,3 @@ class CardScreen(Screen):
             self.query_one("#question").update(question)
             self.query_one("#answer").update(answer)
             db_api.card_update(self.card["id"], question, answer)
-
-    async def action_delete(self) -> None:
-        self.dismiss(CARD_DELETE)

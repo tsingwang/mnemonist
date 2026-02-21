@@ -15,5 +15,9 @@ class MnemonistApp(App):
         "deck_new_screen": DeckNewScreen,
     }
 
+    BINDINGS = [
+        ("ctrl+c", "quit", "Quit")
+    ]
+
     async def on_mount(self) -> None:
         self.push_screen("deck_list_screen")
