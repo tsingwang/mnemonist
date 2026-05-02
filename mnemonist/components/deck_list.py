@@ -17,6 +17,7 @@ class DeckList(DataTable):
         {"name": "Avg Accuracy",    "key": "accuracy"},
         {"name": "Total Cards",     "key": "total"},
         {"name": "Today",           "key": "today"},
+        {"name": "Last",            "key": "last"},
     ]
 
     def render_table(self) -> None:
@@ -27,6 +28,7 @@ class DeckList(DataTable):
                 '{:.2f}%'.format(d['accuracy']),
                 '{}'.format(d['total']),
                 '{}'.format(d['today']),
+                d['last'].strftime('%Y-%m-%d %H:%M'),
             ]
             self.add_row(*row, key=d['id'])
 

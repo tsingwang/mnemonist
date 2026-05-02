@@ -16,7 +16,19 @@ def deck_list() -> list:
             d['accuracy'] = accuracy
             d['total'] = deck.cards.count()
             d['today'] = deck.cards.filter(Card.schedule_day <= date.today()).count()
+
+            # compute latest timestamp among deck and its cards
+            last = deck.created_at
+            # try to find the most recently updated card
+            recent_card = deck.cards.order_by(Card.updated_at.desc()).first()
+            if recent_card:
+                if recent_card.updated_at and recent_card.updated_at > last:
+                    last = recent_card.updated_at
+            d['last'] = last
+
             decks.append(d)
+    # sort by latest descending (None treated as oldest)
+    decks.sort(key=lambda x: x['last'], reverse=True)
     return decks
 
 def deck_new(name: str) -> None:
